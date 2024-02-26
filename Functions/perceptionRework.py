@@ -288,6 +288,7 @@ def move():
                     unreachable = False
                 time.sleep(result[2]/1000) # 返回参数的第三项为时间
                 start_pick_up = False
+                print("Start pickup == false: if first_move and start_pick_up")
                 first_move = False
                 action_finish = True
             elif not first_move and not unreachable: # 不是第一次检测到物体
@@ -364,6 +365,7 @@ def move():
                     get_roi = False
                     action_finish = True
                     start_pick_up = False
+                    print("Start pickup == false after pickup sequence")
                     set_rgb(detect_color)
                 else:
                     time.sleep(0.01)
@@ -395,12 +397,13 @@ if __name__ == '__main__':
         if img is not None:
             img, new_world_x, new_world_y, rotation_angle = percept.run(img, not start_pick_up)
             
-            if not start_pick_up and not new_world_x == None:
-                world_x = new_world_x
-                world_y = new_world_y
-                distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #对比上次坐标来判断是否移动
-                last_x, last_y = world_x, world_y
-                track = True
+            if not start_pick_up:
+                if not new_world_x == None:
+                    world_x = new_world_x
+                    world_y = new_world_y
+                    distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #对比上次坐标来判断是否移动
+                    last_x, last_y = world_x, world_y
+                    track = True
                 if action_finish:
                     if distance < 0.3:
                         center_list.extend((world_x, world_y))
@@ -408,6 +411,7 @@ if __name__ == '__main__':
                         if start_count_t1:
                             start_count_t1 = False
                             t1 = time.time()
+                            print("Reset")
                         if time.time() - t1 > 1.5:
                             start_count_t1 = True
                             world_X, world_Y = np.mean(np.array(center_list).reshape(count, 2), axis=0)
@@ -420,6 +424,7 @@ if __name__ == '__main__':
                         start_count_t1 = True
                         count = 0
                         center_list = []
+                        print("Else reset")
             if not percept.displayImg(img):
                 break
     percept.closeCamera()
