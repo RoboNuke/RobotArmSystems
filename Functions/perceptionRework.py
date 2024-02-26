@@ -144,7 +144,7 @@ class Perception:
 
         self.roi = getROI(box) 
 
-        img_x, img_y = getCenter(rect, roi, self.size, square_length) 
+        img_x, img_y = getCenter(rect, self.roi, self.size, square_length) 
         world_x, world_y = convertCoordinate(img_x, img_y, self.size) 
         return box, world_x, world_y, rect[2]
 
@@ -220,7 +220,7 @@ def reset():
     center_list = []
     first_move = True
     __target_color = ()
-    detect_color = 'None'
+    detect_color = 'red'
     action_finish = True
     start_pick_up = False
     start_count_t1 = True
@@ -349,6 +349,7 @@ def move():
                     if not __isRunning:
                         continue
                     # 对不同颜色方块进行分类放置
+                    print(detect_color)
                     result = AK.setPitchRangeMoving((coordinate[detect_color][0], coordinate[detect_color][1], 12), -90, -90, 0)   
                     time.sleep(result[2]/1000)
                     
@@ -407,13 +408,13 @@ th.start()
 
 
 if __name__ == '__main__':
-    __target_color = 'red'
-    detect_color = 'red'
     initMove()
-    percept = Perception(detect_color = detect_color)
+    percept = Perception(detect_color = 'red')
     percept.startCamera()
     start()
     keep_roi = False
+    __target_color = 'red'
+    detect_color = 'red'
     while True:
         img = percept.getImg()
         if img is not None:
@@ -429,15 +430,16 @@ if __name__ == '__main__':
                 distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #对比上次坐标来判断是否移动
                 last_x, last_y = world_x, world_y
                 track = True
+                print(count, distance)
                 if action_finish:
-                    if distance < 0.3:
+                    if distance < 0.75:
                         center_list.extend((world_x, world_y))
                         count += 1
                         if start_count_t1:
                             start_count_t1 = False
                             t1 = time.time()
                             print("Reset")
-                        if time.time() - t1 > 1.5:
+                        if time.time() - t1 > 0.5:
                             start_count_t1 = True
                             world_X, world_Y = np.mean(np.array(center_list).reshape(count, 2), axis=0)
                             count = 0
