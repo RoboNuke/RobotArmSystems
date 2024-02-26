@@ -394,10 +394,10 @@ if __name__ == '__main__':
         img = percept.getImg()
         if img is not None:
             img, new_world_x, new_world_y, rotation_angle = percept.run(img, not start_pick_up)
-            if not new_world_x == None:
+            
+            if not start_pick_up and not new_world_x == None:
                 world_x = new_world_x
                 world_y = new_world_y
-            if not start_pick_up:
                 distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #对比上次坐标来判断是否移动
                 last_x, last_y = world_x, world_y
                 track = True
