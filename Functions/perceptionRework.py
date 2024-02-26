@@ -29,10 +29,7 @@ class Perception:
             'black': (0, 0, 0),
             'white': (255, 255, 255),
         }
-
-    def reset(self):
-        pass
-        
+        self.roi = () 
 
     def startCamera(self):
         self.cam = Camera.Camera()
@@ -59,11 +56,38 @@ class Perception:
         cv2.line(img, (int(img_w / 2), 0), (int(img_w / 2), img_h), (0, 0, 200), 1)
         return img
 
-    def preprocessImg(self, img):
+    def getMaskROI(self, frame, roi, size):
+        x_min, x_max, y_min, y_max = roi
+        x_min -= 10
+        x_max += 10
+        y_min -= 10
+        y_max += 10
+
+        if x_min < 0:
+            x_min = 0
+        if x_max > size[0]:
+            x_max = size[0]
+        if y_min < 0:
+            y_min = 0
+        if y_max > size[1]:
+            y_max = size[1]
+
+        black_img = np.zeros([size[1], size[0]], dtype=np.uint8)
+        black_img = cv2.cvtColor(black_img, cv2.COLOR_GRAY2RGB)
+        black_img[y_min:y_max, x_min:x_max] = frame[y_min:y_max, x_min:x_max]
+        
+        return black_img
+    
+    def preprocessImg(self, img, keep_roi=False):
         """ Gaussian Blur, and Resize and color convert"""
         frame_resize = cv2.resize(img, self.size, interpolation=cv2.INTER_NEAREST)
         frame_gb = cv2.GaussianBlur(frame_resize, (11, 11), 11)
+        if keep_roi:
+            frame_gb = self.getMaskROI(frame_gb, self.roi, self.size)
+
+
         frame_lab = cv2.cvtColor(frame_gb, cv2.COLOR_BGR2LAB)  # 将图像转换到LAB空间
+            
         return frame_lab
 
     def colorPreprocess(self, img, detect_color='red'):
@@ -118,7 +142,7 @@ class Perception:
         rect = cv2.minAreaRect(maxBlob)
         box = np.int0(cv2.boxPoints(rect))
 
-        roi = getROI(box) 
+        self.roi = getROI(box) 
 
         img_x, img_y = getCenter(rect, roi, self.size, square_length) 
         world_x, world_y = convertCoordinate(img_x, img_y, self.size) 
@@ -130,19 +154,16 @@ class Perception:
         cv2.putText(img, '(' + str(world_x) + ',' + str(world_y) + ')', (min(box[0, 0], box[2, 0]), box[2, 1] - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.range_rgb[detect_color], 1)
 
-    def estCenter(self):
-        """ Keeps running avg of center locations """
-        pass
-
-    def run(self, img, find_blobs = True):
+    def run(self, img, find_blobs = True, keep_roi=False):
         img_copy = img.copy()
         img = self.drawAlignCross(img)
 
         if find_blobs:
-            img_lab = self.preprocessImg(img_copy)
+            img_lab = self.preprocessImg(img_copy, keep_roi)
             maxBlob, maxArea, detect_color = self.getLargestColorBlob(img_lab)
             if maxArea > self.minBlobArea:
                 bbox, world_x, world_y, angle = self.identifyContour(maxBlob)
+                print(bbox, world_x, world_y, angle)
                 self.highlightBlobOnImg(img, bbox, world_x, world_y, detect_color )
                 return img, world_x, world_y, angle
         return img, None, None, None
@@ -392,13 +413,19 @@ if __name__ == '__main__':
     percept = Perception(detect_color = detect_color)
     percept.startCamera()
     start()
+    keep_roi = False
     while True:
         img = percept.getImg()
         if img is not None:
             
             if not start_pick_up:
-                img, world_x, world_y, rotation_angle = percept.run(img, not start_pick_up)
-
+                img, new_world_x, new_world_y, rotation_angle = percept.run(img, not start_pick_up, keep_roi)
+                keep_roi = False
+                if new_world_x == None:
+                    continue
+                world_x = new_world_x
+                world_y = new_world_y
+                keep_roi = True
                 distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #对比上次坐标来判断是否移动
                 last_x, last_y = world_x, world_y
                 track = True
@@ -427,4 +454,5 @@ if __name__ == '__main__':
                 img = percept.drawAlignCross(img)
             if not percept.displayImg(img):
                 break
+        img = None
     percept.closeCamera()
