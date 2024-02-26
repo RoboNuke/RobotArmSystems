@@ -414,6 +414,7 @@ if __name__ == '__main__':
                             count = 0
                             center_list = []
                             start_pick_up = True
+                            print("Start pickup is True")
                     else:
                         t1 = time.time()
                         start_count_t1 = True
