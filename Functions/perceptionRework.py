@@ -122,7 +122,7 @@ class Perception:
 
         img_x, img_y = getCenter(rect, roi, self.size, square_length) 
         world_x, world_y = convertCoordinate(img_x, img_y, self.size) 
-        return box, world_x, world_y
+        return box, world_x, world_y, rect[2]
 
     def highlightBlobOnImg(self, img, box, world_x, world_y, detect_color='red'):
         """ Adds lines around object and writes center """
@@ -142,10 +142,10 @@ class Perception:
             img_lab = self.preprocessImg(img_copy)
             maxBlob, maxArea, detect_color = self.getLargestColorBlob(img_lab)
             if maxArea > self.minBlobArea:
-                bbox, world_x, world_y = self.identifyContour(maxBlob)
+                bbox, world_x, world_y, angle = self.identifyContour(maxBlob)
                 self.highlightBlobOnImg(img, bbox, world_x, world_y, detect_color )
-                return img, world_x, world_y
-        return img, None, None
+                return img, world_x, world_y, angle
+        return img, None, None, None
 
 
 
@@ -393,7 +393,7 @@ if __name__ == '__main__':
     while True:
         img = percept.getImg()
         if img is not None:
-            img, world_x, world_y = percept.run(img, not start_pick_up)
+            img, world_x, world_y, rotation_angle = percept.run(img, not start_pick_up)
             if not start_pick_up:
                 distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #对比上次坐标来判断是否移动
                 last_x, last_y = world_x, world_y
@@ -406,7 +406,6 @@ if __name__ == '__main__':
                             start_count_t1 = False
                             t1 = time.time()
                         if time.time() - t1 > 1.5:
-                            rotation_angle = rect[2]
                             start_count_t1 = True
                             world_X, world_Y = np.mean(np.array(center_list).reshape(count, 2), axis=0)
                             count = 0
