@@ -97,7 +97,8 @@ class Perception:
     def getLargestColorBlob(self, img):
         """ Iterate over colors keeping largest area and location"""
         if not self.detect_color == -1:
-            maxBlob, maxArea =  self.getColorBlob(self.detect_color)
+            ppbImg = self.colorPreprocess(img, self.detect_color) # preprocess binary image
+            maxBlob, maxArea =  self.getColorBlob(ppbImg, self.detect_color)
             return maxBlob, maxArea, self.detect_color
         
         maxArea = -1
@@ -152,6 +153,8 @@ class Perception:
 """
     BELOW IS OLD ROBOT CONTROL CODE FOR DEMO
 """
+
+AK = ArmIK()
 __isRunning = False
 first_move = False
 start_pick_up = False
@@ -165,6 +168,7 @@ unreachable = False
 track = False
 servo1 = 500
 get_roi = False
+_stop = False
 
 
 count = 0
