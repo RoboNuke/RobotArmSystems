@@ -395,15 +395,13 @@ if __name__ == '__main__':
     while True:
         img = percept.getImg()
         if img is not None:
-            img, new_world_x, new_world_y, rotation_angle = percept.run(img, not start_pick_up)
             
             if not start_pick_up:
-                if not new_world_x == None:
-                    world_x = new_world_x
-                    world_y = new_world_y
-                    distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #对比上次坐标来判断是否移动
-                    last_x, last_y = world_x, world_y
-                    track = True
+                img, world_x, world_y, rotation_angle = percept.run(img, not start_pick_up)
+
+                distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #对比上次坐标来判断是否移动
+                last_x, last_y = world_x, world_y
+                track = True
                 if action_finish:
                     if distance < 0.3:
                         center_list.extend((world_x, world_y))
@@ -425,6 +423,8 @@ if __name__ == '__main__':
                         count = 0
                         center_list = []
                         print("Else reset")
+            else:
+                img = percept.drawAlignCross(img)
             if not percept.displayImg(img):
                 break
     percept.closeCamera()
