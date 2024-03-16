@@ -37,7 +37,7 @@ class RobotControl:
 
     def moveToLoc(self, x, y, z, pitch, moveTime=None):
         """ Takes pose in and returns if successful """
-        result = AK.setPitchRangeMoving((x,y,z), pitch, -90, 0, moveTime)
+        result = self.AK.setPitchRangeMoving((x,y,z), pitch, -90, 0, moveTime)
         if result == False:
             return False
         time.sleep(result[2]/1000)
@@ -147,6 +147,7 @@ def perceptionLogic():
     percept = Perception(detect_color = 'red')
     percept.startCamera()
     keep_roi = False
+    last_x, last_y = 0,0
     while True:
         img = percept.getImg()
         if img is not None:
@@ -163,7 +164,7 @@ def perceptionLogic():
                 last_x, last_y = world_x, world_y
                 rc.tracking = True
                 #print(count, distance)
-                if rc.action_finish:
+                if rc.action_complete:
                     if distance < 0.75:
                         center_list.extend((world_x, world_y))
                         count += 1
@@ -199,6 +200,7 @@ def controlLogic():
 
 
     while True:
+        #print("here rc")
         if not rc.prepick and start_pick_up:
             rc.setColor(percept.detect_color)
             rc.beep(0.1)
@@ -219,11 +221,11 @@ def controlLogic():
 
 rc = RobotControl()
 percept = Perception('red')
-if __name__ == "__main__":
 
-    th = threading.Thread(target = controlLogic)
-    th.setDaemon(True)
-    th.start()
+th = threading.Thread(target = controlLogic)
+th.setDaemon(True)
+th.start()
+if __name__ == "__main__":
 
     perceptionLogic()
 
