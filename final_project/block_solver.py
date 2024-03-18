@@ -12,11 +12,11 @@ class BlockFinder():
         self.sceneGraph = sg
 
     def solve(self):
-        if prob.type == 'GLOBAL':
+        if self.prob.type == 'GLOBAL':
             return self.solveGlobal()
-        elif prob.type == 'RELATIVE':
+        elif self.prob.type == 'RELATIVE':
             return self.solveRelative()
-        elif prob.type == 'GOAL':
+        elif self.prob.type == 'GOAL':
             return self.solveGoal()
 
     def solveGlobal(self):
@@ -72,7 +72,7 @@ class BlockFinder():
         return self.getBlockByRef()
 
     def getBlockByRef(self):
-        ref = prob.ref_block
+        ref = self.prob.ref_block
         for block in self.sceneGraph.blocks:
             if block[1] == ref:
                 outblock = block
