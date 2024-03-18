@@ -138,20 +138,21 @@ class SceneGraphPerception():
         sg = SceneGraph()
         idx = 0
         for color in ['red','blue','green']:
-            maxBlob, maxArea = self.getLargestColorBlob(img_lab)
+            maxBlob, maxArea = self.getLargestColorBlob(img_lab, color)
             if maxArea > self.minBlobArea:
                 bbox, world_x, world_y, angle = self.identifyContour(maxBlob)
-                print(bbox, world_x, world_y, angle)
-                self.highlightBlobOnImg(img, bbox, world_x, world_y)
+                #print(bbox, world_x, world_y, angle)
+                self.highlightBlobOnImg(img, bbox, world_x, world_y, color)
                 sg.addBlock(color, [world_x,world_y,angle], idx)
                 idx += 1
         return sg, img
 
-
+import time
 if __name__=="__main__":
     SGP = SceneGraphPerception()
     SGP.startCamera()
-    for i in range(10):
+    #for i in range(10):
+    while True:
         raw_img = SGP.getImg()
         if raw_img is not None:
             scene_graph, post_img = SGP.getGraph(raw_img)
@@ -159,6 +160,8 @@ if __name__=="__main__":
                 print(block)
             if not SGP.displayImg(post_img):
                 break
+            #time.sleep(1)
+            #SGP.displayImg(raw_img)
     SGP.closeCamera()
 
 
